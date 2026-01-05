@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>湖南省农业分析系统 - 主页</title>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        .main-container {
+            padding: 50px 0;
+        }
+        .system-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+        .analysis-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        .analysis-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            text-decoration: none;
+            color: inherit;
+        }
+        .analysis-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+        .btn-system {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        .btn-system:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            color: white;
+        }
+        .status-indicator {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .status-ready { background: #d4edda; color: #155724; }
+        .status-loading { background: #fff3cd; color: #856404; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .title-main {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .user-info-bar {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .user-details h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #333;
+        }
+        .user-details p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .user-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-user {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-profile {
+            background: #007bff;
+            color: white;
+        }
+        .btn-profile:hover {
+            background: #0056b3;
+            color: white;
+        }
+        .btn-logout {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-logout:hover {
+            background: #c82333;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container main-container">
+        <h1 class="title-main">🌾 湖南省农业分析系统</h1>
+        
+        <!-- 用户信息栏 -->
+        <div class="user-info-bar">
+            <div class="user-info">
+                <div class="user-avatar">{{ session.username[0]|upper }}</div>
+                <div class="user-details">
+                    <h3>欢迎，{{ session.username }}！</h3>
+                    <p>湖南省农业分析系统</p>
+                </div>
+            </div>
+            <div class="user-actions">
+                <a href="{{ url_for('profile') }}" class="btn-user btn-profile">👤 个人资料</a>
+                <a href="{{ url_for('logout') }}" class="btn-user btn-logout">🚪 退出登录</a>
+            </div>
+        </div>
+        
+        <!-- 系统控制面板 -->
+        <div class="system-card">
+            <h2 class="text-center mb-4">🎛️ 系统控制面板</h2>
+            
+            <div class="text-center">
+                <div id="systemStatus" class="status-indicator status-loading">系统状态: 未初始化</div>
+                
+                <button id="initBtn" class="btn btn-system">
+                    🚀 初始化系统
+                </button>
+                <button id="runBtn" class="btn btn-system" disabled>
+                    📊 运行分析
+                </button>
+            </div>
+            
+            <div id="systemInfo" class="alert alert-info mt-3" style="display: none;"></div>
+        </div>
+        
+        <!-- 分析模块导航 -->
+        <div class="system-card">
+            <h2 class="text-center mb-4">📈 分析模块</h2>
+            
+            <div class="row">
+                <div class="col-md-6 col-lg-3">
+                    <a href="/temperature_analysis" class="analysis-card d-block text-center">
+                        <span class="analysis-icon">🌡️</span>
+                        <h4>温度分析</h4>
+                        <p class="text-muted">年度和月度温度趋势分析</p>
+                    </a>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <a href="/soil_analysis" class="analysis-card d-block text-center">
+                        <span class="analysis-icon">🏔️</span>
+                        <h4>土壤分析</h4>
+                        <p class="text-muted">土壤类型分布和质量评估</p>
+                    </a>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <a href="/crop_analysis" class="analysis-card d-block text-center">
+                        <span class="analysis-icon">🌾</span>
+                        <h4>作物分析</h4>
+                        <p class="text-muted">作物适宜性和需求分析</p>
+                    </a>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <a href="/zoning_analysis" class="analysis-card d-block text-center">
+                        <span class="analysis-icon">🗺️</span>
+                        <h4>区划优化</h4>
+                        <p class="text-muted">农业区划优化建议</p>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 新增模块 -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card analysis-card h-100" onclick="window.location.href='/suitability_evaluation'">
+                        <div class="card-body text-center">
+                            <div class="analysis-icon">🌱</div>
+                            <h5 class="card-title">适宜性评价模型</h5>
+                            <p class="card-text">种植适宜性评价引擎</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card analysis-card h-100" onclick="window.location.href='/zoning_distribution'">
+                        <div class="card-body text-center">
+                            <div class="analysis-icon">🌍</div>
+                            <h5 class="card-title">多准则区划</h5>
+                            <p class="card-text">适宜性空间分布图</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 报告生成模块 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card analysis-card h-100" onclick="window.location.href='/report_generator'">
+                        <div class="card-body text-center">
+                            <div class="analysis-icon">📋</div>
+                            <h5 class="card-title">规划方案报告生成</h5>
+                            <p class="card-text">一键生成包含区划图、数据表格和规划建议的详细报告</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        console.log('🚀 农业分析系统主页启动');
+        
+        // 初始化系统
+        async function initializeSystem() {
+            console.log('🚀 初始化系统');
+            
+            const initBtn = document.getElementById('initBtn');
+            const systemStatus = document.getElementById('systemStatus');
+            const systemInfo = document.getElementById('systemInfo');
+            const runBtn = document.getElementById('runBtn');
+            
+            initBtn.disabled = true;
+            initBtn.innerHTML = '🔄 初始化中...';
+            systemStatus.textContent = '系统状态: 初始化中...';
+            systemStatus.className = 'status-indicator status-loading';
+            
+            try {
+                const response = await fetch('/api/system/initialize', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    systemStatus.textContent = '系统状态: 系统就绪';
+                    systemStatus.className = 'status-indicator status-ready';
+                    systemInfo.innerHTML = `
+                        <strong>✅ 系统初始化成功！</strong><br>
+                        数据统计: 温度${result.data_summary.temperature_records}条, 
+                        土壤${result.data_summary.soil_records}条, 
+                        作物${result.data_summary.crop_records}条, 
+                        降水${result.data_summary.precipitation_records}条
+                    `;
+                    systemInfo.className = 'alert alert-success';
+                    systemInfo.style.display = 'block';
+                    runBtn.disabled = false;
+                } else {
+                    systemStatus.textContent = '系统状态: 初始化失败';
+                    systemStatus.className = 'status-indicator status-error';
+                    systemInfo.innerHTML = `<strong>❌ 初始化失败:</strong> ${result.message}`;
+                    systemInfo.className = 'alert alert-danger';
+                    systemInfo.style.display = 'block';
+                }
+            } catch (error) {
+                systemStatus.textContent = '系统状态: 连接失败';
+                systemStatus.className = 'status-indicator status-error';
+                systemInfo.innerHTML = `<strong>❌ 网络错误:</strong> ${error.message}`;
+                systemInfo.className = 'alert alert-danger';
+                systemInfo.style.display = 'block';
+            }
+            
+            initBtn.disabled = false;
+            initBtn.innerHTML = '🚀 初始化系统';
+        }
+        
+        // 运行分析
+        async function runAnalysis() {
+            console.log('🔬 运行分析');
+            
+            const runBtn = document.getElementById('runBtn');
+            const systemInfo = document.getElementById('systemInfo');
+            
+            runBtn.disabled = true;
+            runBtn.innerHTML = '🔄 分析中...';
+            
+            try {
+                const response = await fetch('/api/analysis/run', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    systemInfo.innerHTML = `
+                        <strong>✅ 分析完成！</strong><br>
+                        执行时间: ${result.statistics.execution_time}秒<br>
+                        现在可以访问各个分析页面查看结果
+                    `;
+                    systemInfo.className = 'alert alert-success';
+                } else {
+                    systemInfo.innerHTML = `<strong>❌ 分析失败:</strong> ${result.message}`;
+                    systemInfo.className = 'alert alert-danger';
+                }
+            } catch (error) {
+                systemInfo.innerHTML = `<strong>❌ 分析异常:</strong> ${error.message}`;
+                systemInfo.className = 'alert alert-danger';
+            }
+            
+            runBtn.disabled = false;
+            runBtn.innerHTML = '📊 运行分析';
+        }
+        
+        // 绑定事件
+        document.getElementById('initBtn').addEventListener('click', initializeSystem);
+        document.getElementById('runBtn').addEventListener('click', runAnalysis);
+        
+        console.log('🎉 主页面就绪');
+    </script>
+</body>
+</html>

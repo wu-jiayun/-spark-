@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 湖南省农业分析系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .system-title {
+            font-size: 1.3rem;
+            font-weight: normal;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            background: #0056b3;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .tab-container {
+            margin-bottom: 20px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: #007bff;
+            border-bottom-color: #007bff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .footer-text {
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .demo-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .demo-info strong {
+            color: #333;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+            
+            .system-title {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">🌾</div>
+        <h1 class="system-title">湖南省农业分析系统</h1>
+        <p class="subtitle">基于Spark的农业种植适宜性区划与优化</p>
+        
+        <div class="demo-info">
+            <strong>演示账号</strong><br>
+            用户名: admin<br>
+            密码: 123456
+        </div>
+
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button type="button" class="tab-button active" onclick="switchTab('login')">登录</button>
+                <button type="button" class="tab-button" onclick="switchTab('register')">注册</button>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- 登录表单 -->
+            <div id="login-tab" class="tab-content active">
+                <form method="POST" action="/login">
+                    <div class="form-group">
+                        <label for="username">用户名</label>
+                        <input type="text" 
+                               id="username" 
+                               name="username" 
+                               class="form-control" 
+                               placeholder="请输入用户名"
+                               value="{{ request.form.username or '' }}"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <input type="password" 
+                               id="password" 
+                               name="password" 
+                               class="form-control" 
+                               placeholder="请输入密码"
+                               required>
+                    </div>
+
+                    <button type="submit" class="btn-login">
+                        登录系统
+                    </button>
+                </form>
+            </div>
+
+            <!-- 注册表单 -->
+            <div id="register-tab" class="tab-content">
+                <form method="POST" action="/register">
+                    <div class="form-group">
+                        <label for="reg-username">用户名</label>
+                        <input type="text" 
+                               id="reg-username" 
+                               name="username" 
+                               class="form-control" 
+                               placeholder="请输入用户名（3-20个字符）"
+                               value="{{ request.form.username or '' }}"
+                               required
+                               minlength="3"
+                               maxlength="20">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-password">密码</label>
+                        <input type="password" 
+                               id="reg-password" 
+                               name="password" 
+                               class="form-control" 
+                               placeholder="请输入密码（至少6个字符）"
+                               required
+                               minlength="6">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-confirm-password">确认密码</label>
+                        <input type="password" 
+                               id="reg-confirm-password" 
+                               name="confirm_password" 
+                               class="form-control" 
+                               placeholder="请再次输入密码"
+                               required
+                               minlength="6">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-email">邮箱（可选）</label>
+                        <input type="email" 
+                               id="reg-email" 
+                               name="email" 
+                               class="form-control" 
+                               placeholder="请输入邮箱地址"
+                               value="{{ request.form.email or '' }}">
+                    </div>
+
+                    <button type="submit" class="btn-login">
+                        注册账号
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="footer-text">
+            © 2025 湖南省农业分析系统 v1.0.0<br>
+            科学数据，智慧农业
+        </div>
+    </div>
+
+    <script>
+        // 标签页切换功能
+        function switchTab(tabName) {
+            // 切换按钮状态
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // 切换内容显示
+            const loginTab = document.getElementById('login-tab');
+            const registerTab = document.getElementById('register-tab');
+            
+            if (tabName === 'login') {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                // 聚焦到登录用户名输入框
+                setTimeout(() => document.getElementById('username').focus(), 100);
+            } else {
+                loginTab.classList.remove('active');
+                registerTab.classList.add('active');
+                // 聚焦到注册用户名输入框
+                setTimeout(() => document.getElementById('reg-username').focus(), 100);
+            }
+        }
+
+        // 自动聚焦到用户名输入框
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('username').focus();
+        });
+
+        // 回车键提交表单
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const activeTab = document.querySelector('.tab-content.active');
+                const form = activeTab.querySelector('form');
+                if (form) {
+                    form.submit();
+                }
+            }
+        });
+
+        // 注册表单验证
+        document.querySelector('#register-tab form')?.addEventListener('submit', function(e) {
+            const password = document.getElementById('reg-password').value;
+            const confirmPassword = document.getElementById('reg-confirm-password').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('两次输入的密码不一致，请重新输入');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>
